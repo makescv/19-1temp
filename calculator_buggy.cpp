@@ -121,12 +121,17 @@ double primary()
 	{	double d = expression();
 		t = ts.get();
 		if (t.kind != ')') error("'(' expected");
+		return d;
 	}
 	case '-':
 		return - primary();
+	case '+':  //+unary
+		return primary();
 	case number:
 		return t.value;
 	case name:
+		if (is_declared(t.name))
+			t.value = get_value(t.name);
 		return t.value;
 	default:
 		//There is no next parse step, that's why no ts.putback and alert error
@@ -207,9 +212,15 @@ void clean_up_mess()
 
 const string prompt = "> ";
 const string result = "= ";
+double const pi = 3.14159;//pi
+double const Yee = 2.71828;//e
 
 void calculate()
 {
+	//It should be in Calculator constructor next step.
+	set_value("pi", pi);
+	set_value("e", Yee);
+
 	while(true) try {
 		cout << prompt;
 		Token t = ts.get();
