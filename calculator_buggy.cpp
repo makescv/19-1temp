@@ -10,16 +10,17 @@ struct Token {
 	string name;
 	Token(char ch) :kind(ch), value(0) { }
 	Token(char ch, double val) :kind(ch), value(val) { }
+	Token(char ch, string val) : kind(ch), name(val) { }//for variable constructor
 };
 
 class Token_stream {
-	bool full;
+	bool isFull;
 	Token buffer;
 public:
-	Token_stream() :full(0), buffer(0) { }
+	Token_stream() :isFull(false), buffer(0) { }//just name change
 
 	Token get();
-	void putback(Token t) { buffer=t; full=true; }
+	void putback(Token t) { buffer=t; isFull=true; }
 
 	void ignore(char);
 };
@@ -30,33 +31,18 @@ const char print = ';';
 const char number = '8';
 const char name = 'a';
 
-Token get()
+Token Token_stream::get()//scope
 {
-	if (full) { full=false; return buffer; }
+	if (isFull) { isFull=false; return buffer; }
 	char ch;
 	cin >> ch;
 	switch (ch) {
-	case '(':
-	case ')':
-	case '+':
-	case '-':
-	case '*':
-	case '/':
-	case '%':
-	case ';':
-	case '=':
+	case '(':	case ')'://for readability
+	case '+':	case '-':	case '*':	case '/':	case '%':
+	case ';':	case '=':
 		return Token(ch);
-	case '.':
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
+	case '.':	case '0':	case '1':	case '2':	case '3':	case '4':
+	case '5':	case '6':	case '7':	case '8':	case '9':
 	{	
 		cin.unget();
 		double val;
@@ -79,11 +65,11 @@ Token get()
 
 void Token_stream::ignore(char c)
 {
-	if (full && c==buffer.kind) {
-		full = false;
+	if (isFull && c==buffer.kind) {
+		isFull = false;
 		return;
 	}
-	full = false;
+	isFull = false;
 
 	char ch;
 	while (cin>>ch)
@@ -107,12 +93,13 @@ double get_value(string s)
 
 void set_value(string s, double d)
 {
-	for (int i = 0; i<=names.size(); ++i)
+	for (int i = 0; i<names.size(); ++i)//Wrong index
 		if (names[i].name == s) {
 			names[i].value = d;
 			return;
 		}
-	error("set: undefined name ",s);
+	names.push_back(Variable(s, d));//insert new variable
+	//error("set: undefined name ",s);
 }
 
 bool is_declared(string s)
@@ -142,6 +129,7 @@ double primary()
 	case name:
 		return t.value;
 	default:
+		//There is no next parse step, that's why no ts.putback and alert error
 		error("primary expected");
 	}
 }
@@ -162,6 +150,7 @@ double term()
 			break;
 		}
 		default:
+			ts.putback(t);//put back token
 			return left;
 		}
 	}
@@ -180,6 +169,7 @@ double expression()
 			left -= term();
 			break;
 		default:
+			ts.putback(t);//put back token
 			return left;
 		}
 	}
