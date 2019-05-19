@@ -174,13 +174,10 @@ double Calculator::primary() {
 		// cout << "pri" << t.value;
 		return t.value;
 
-		////////노출됨 조심
-	case name://변수
-			  //두경우가 있음 할당할때랑 값을 빼올때랑 rvalue, lvalue
-		if (is_declared(t.name)) {//사용하는거인경우 ㅋ 즉 rvalue			
-			t.value = get_value(t.name);
-		}
-		return t.value;
+	case name://변수토큰 rhs
+		if (!is_declared(t.name))
+			error("error");
+		return get_value(t.name);
 
 	default:
 		error("primary expected");
